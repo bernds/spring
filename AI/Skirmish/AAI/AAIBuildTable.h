@@ -56,7 +56,7 @@ public:
 	// randomness == 1 means no randomness at all; never set randomnes to zero -> crash
 	// ******************************************************************************************************
 	// returns power plant
-	int GetPowerPlant(int side, float cost, float urgency, float max_power, float current_energy, bool water, bool geo, bool canBuild);
+	int GetPowerPlant(int side, float urgency, float max_power, float current_energy, bool water, bool geo, bool canBuild);
 
 	// returns a extractor from the list based on certain factors
 	int GetMex(int side, float cost, float effiency, bool armed, bool water, bool canBuild);

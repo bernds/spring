@@ -918,7 +918,6 @@ bool AAIExecute::BuildPowerPlant()
 	bool checkWater, checkGround;
 	float urgency;
 	float max_power;
-	float eff;
 	float energy = cb->GetEnergyIncome()+1.0f;
 
 	// check if already one power_plant under construction and energy short
@@ -926,12 +925,10 @@ bool AAIExecute::BuildPowerPlant()
 	{
 		urgency = 0.4f + GetEnergyUrgency();
 		max_power = 0.5f;
-		eff = 2.2f - brain->Affordable() / 4.0f;
 	}
 	else
 	{
 		max_power = 0.5f + pow((float) ai->ut->activeUnits[POWER_PLANT], 0.8f);
-		eff = 0.5 + 1.0f / (brain->Affordable() + 0.5f);
 		urgency = 0.5f + GetEnergyUrgency();
 	}
 
@@ -943,24 +940,24 @@ bool AAIExecute::BuildPowerPlant()
 		brain->sectors[0].sort(suitable_for_power_plant);
 
 	// get water and ground plant
-	ground_plant = bt->GetPowerPlant(ai->side, eff, urgency, max_power, energy, false, false, false);
+	ground_plant = bt->GetPowerPlant(ai->side, urgency, max_power, energy, false, false, false);
 	// currently aai cannot build this building
 	if(ground_plant && bt->units_dynamic[ground_plant].constructorsAvailable <= 0)
 	{
 		if( bt->units_dynamic[water_plant].constructorsRequested <= 0)
 			bt->BuildBuilderFor(ground_plant);
 
-		ground_plant = bt->GetPowerPlant(ai->side, eff, urgency, max_power, energy, false, false, true);
+		ground_plant = bt->GetPowerPlant(ai->side, urgency, max_power, energy, false, false, true);
 	}
 
-	water_plant = bt->GetPowerPlant(ai->side, eff, urgency, max_power, energy, true, false, false);
+	water_plant = bt->GetPowerPlant(ai->side, urgency, max_power, energy, true, false, false);
 	// currently aai cannot build this building
 	if(water_plant && bt->units_dynamic[water_plant].constructorsAvailable <= 0)
 	{
 		if( bt->units_dynamic[water_plant].constructorsRequested <= 0)
 			bt->BuildBuilderFor(water_plant);
 
-		water_plant = bt->GetPowerPlant(ai->side, eff, urgency, max_power, energy, true, false, true);
+		water_plant = bt->GetPowerPlant(ai->side, urgency, max_power, energy, true, false, true);
 	}
 
 	for(list<AAISector*>::iterator sector = brain->sectors[0].begin(); sector != brain->sectors[0].end(); ++sector)
@@ -2168,6 +2165,27 @@ void AAIExecute::DefendMex(int mex, int def_id)
 			}
 		}
 	}
+}
+
+bool AAIExecute::UnitAffordable(int unit)
+{
+	const UnitDef *ud = bt->unitList[unit - 1];
+	if (cb->GetMetal() < ud->metalCost) {
+		float t = ud->metalCost - cb->GetMetal();
+		if (t / (averageMetalSurplus + 1) > 10) {
+			if (t / cb->GetMetalIncome() > 8) {
+				return false;
+			}
+		}
+	}
+	if (cb->GetEnergy() < ud->energyCost) {
+		float t = ud->energyCost - cb->GetEnergy();
+		if (t / (averageEnergySurplus + 1) > 10) {
+			if (t / cb->GetEnergyIncome () > 8)
+				return false;
+		}
+	}
+	return true;
 }
 
 void AAIExecute::UpdateRessources()

@@ -1345,48 +1345,56 @@ bool AAIBuildTable::MemberOf(int unit_id, list<int> unit_list)
 	return false;
 }
 
-int AAIBuildTable::GetPowerPlant(int side, float cost, float urgency, float power, float current_energy, bool water, bool geo, bool canBuild)
+int AAIBuildTable::GetPowerPlant(int side, float urgency, float power, float current_energy, bool water, bool geo, bool canBuild)
 {
-	UnitTypeStatic *unit;
-
 	int best_unit = 0;
+	int cheapest_unit = 0;
 
-	float best_ranking = -10000, my_ranking;
+	float lowest_cost = 10000;
+	float best_ranking = -10000;
+
+  	float max_buildtime = this->max_buildtime[POWER_PLANT][side-1];
+
+  	float max_power = this->max_value[POWER_PLANT][side-1];
 
 	//debug
-	//fprintf(ai->file, "Selecting power plant:     power %f    cost %f    urgency %f   energy %f \n", power, cost, urgency, current_energy);
+	//fprintf(ai->file, "Selecting power plant:     power %f    urgency %f   energy %f \n", power, urgency, current_energy);
 
 	for(list<int>::iterator pplant = units_of_category[POWER_PLANT][side-1].begin(); pplant != units_of_category[POWER_PLANT][side-1].end(); ++pplant)
 	{
-		unit = &units_static[*pplant];
+		UnitTypeStatic *unit = &units_static[*pplant];
+		const UnitDef *ud = unitList[*pplant - 1];
 
 		if(canBuild && units_dynamic[*pplant].constructorsAvailable <= 0)
-			my_ranking = -10000;
+			continue;
 		else if(!geo && unitList[*pplant-1]->needGeo)
-			my_ranking = -10000;
-		else if( (!water && unitList[*pplant-1]->minWaterDepth <= 0) || (water && unitList[*pplant-1]->minWaterDepth > 0) )
+			continue;
+		else if( (!water && ud->minWaterDepth <= 0) || (water && ud->minWaterDepth > 0) )
 		{
-			my_ranking = cost * unit->efficiency[1] / max_pplant_eff[side-1] + power * unit->efficiency[0] / max_value[POWER_PLANT][side-1]
-						- urgency * (unitList[*pplant-1]->buildTime / max_buildtime[POWER_PLANT][side-1]);
+			if (unit->cost < lowest_cost)
+			{
+				lowest_cost = unit->cost;
+				cheapest_unit = *pplant;
+			}
+			if (!ai->execute->UnitAffordable (*pplant))
+			{
+				// fprintf(ai->file, "%-20s: too expensive\n", ud->humanName.c_str());
+				continue;
+			}
+			float my_ranking = power * unit->efficiency[1] / max_pplant_eff[side-1]
+						- urgency * (ud->buildTime / max_buildtime);
 
-			//
-			if(unit->cost >= max_cost[POWER_PLANT][side-1])
-				my_ranking -= (cost + urgency + power)/2.0f;
-
-			//fprintf(ai->file, "%-20s: %f\n", unitList[*pplant-1]->humanName.c_str(), my_ranking);
-		}
-		else
-			my_ranking = -10000;
-
-		if(my_ranking > best_ranking)
-		{
+			//fprintf(ai->file, "%-20s: %f\n", ud->humanName.c_str(), my_ranking);
+			if(my_ranking > best_ranking)
+			{
 				best_ranking = my_ranking;
 				best_unit = *pplant;
+			}
 		}
 	}
 
 	// 0 if no unit found (list was probably empty)
-	return best_unit;
+	return best_unit ? best_unit : cheapest_unit;
 }
 
 int AAIBuildTable::GetMex(int side, float cost, float effiency, bool armed, bool water, bool canBuild)

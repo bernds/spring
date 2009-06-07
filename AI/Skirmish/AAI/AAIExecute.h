@@ -49,6 +49,8 @@ public:
 	// returns a position to retreat unit of certain type
 	float3 GetSafePos(int def_id, float3 unit_pos);
 
+	bool UnitAffordable(int unit);
+
 	// updates average ressource usage
 	void UpdateRessources();
 
