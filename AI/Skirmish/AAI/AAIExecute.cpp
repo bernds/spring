@@ -2353,6 +2353,17 @@ void AAIExecute::CheckRessources()
 					break;
 				}
 			}
+		} else if (averageEnergySurplus * 100 < cb->GetEnergyStorage()) {
+			// try to disable some factory assistants
+			for(set<int>::iterator i = ut->constructors.begin(); i != ut->constructors.end(); ++i)
+			{
+				AAIConstructor *builder = ut->units[*i].cons;
+				if (builder->task == ASSISTING)
+				{
+					builder->StopAssisting();
+					break;
+				}
+			}
 		}
 	}
 	// try to enable some metal makers
@@ -2390,6 +2401,33 @@ void AAIExecute::CheckRessources()
 		// try to accelerate mex construction
 		if(ai->ut->futureUnits[METAL_MAKER] > 0 && averageEnergySurplus > cfg->MIN_METAL_MAKER_ENERGY)
 			AssistConstructionOfCategory(METAL_MAKER, 10);
+	}
+
+	/* If we have excess resources, try to assist factories.  */
+	if ((cb->GetEnergy() * 3 >= cb->GetEnergyStorage() || averageEnergySurplus * 6 >= cb->GetEnergyIncome ())
+	    && (cb->GetMetal () * 3 >= cb->GetMetalStorage()) || averageMetalSurplus * 6 >= cb->GetMetalIncome ())
+	{
+		//fprintf(ai->file, "Surplus resources available.\n");
+		for(set<int>::iterator i = ut->constructors.begin(); i != ut->constructors.end(); ++i)
+		{
+			AAIConstructor *builder = ut->units[*i].cons;
+			int def_id = builder->def_id;
+			const UnitDef *def = bt->unitList[def_id - 1];
+
+			if (!def->canBeAssisted || !builder->factory || !bt->IsStatic(def_id))
+				continue;
+			if (bt->units_dynamic[def_id].active == 0)
+				continue;
+			float3 factory_pos = cb->GetUnitPos(builder->unit_id);
+			AAIConstructor *assistant = ut->FindClosestAssistant(factory_pos, 10, true); 
+
+			if(assistant)
+			{
+				assistant->AssistConstruction(*i);
+				//fprintf(ai->file, "Assisting factory construction\n");
+				break;
+			}
+		}
 	}
 }
 
