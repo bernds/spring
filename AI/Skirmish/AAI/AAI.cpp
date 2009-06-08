@@ -770,11 +770,13 @@ void AAI::Update()
 	}
 
 	// unit management
-	if(!(tick%649))
+	if(!(tick%649) || ut->FindIdleFactory())
 	{
 		execute->CheckBuildqueues();
 		brain->BuildUnits();
 		execute->BuildScouts();
+		for(set<int>::iterator builder = ut->constructors.begin(); builder != ut->constructors.end(); ++builder)
+			ut->units[(*builder)].cons->Update();
 	}
 
 	if(!(tick%911))

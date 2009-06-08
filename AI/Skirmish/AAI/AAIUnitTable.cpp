@@ -304,6 +304,23 @@ void AAIUnitTable::RemoveStationaryArty(int unit_id)
 	stationary_arty.erase(unit_id);
 }
 
+AAIConstructor* AAIUnitTable::FindIdleFactory()
+{
+	//fprintf(ai->file, "constructor for %s\n", bt->GetCategoryString(building));
+	AAIConstructor *builder;
+
+	// look for idle builder
+	for(set<int>::iterator i = constructors.begin(); i != constructors.end(); ++i)
+	{
+		AAIConstructor *builder = units[*i].cons;
+
+		if (builder->task == UNIT_IDLE
+		    && builder->factory && bt->IsStatic(builder->def_id))
+			return builder;
+	}
+	return NULL;
+}
+
 AAIConstructor* AAIUnitTable::FindBuilder(int building, bool commander)
 {
 	//fprintf(ai->file, "constructor for %s\n", bt->GetCategoryString(building));

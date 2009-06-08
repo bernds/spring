@@ -54,6 +54,8 @@ public:
 	void AddStationaryArty(int unit_id, int def_id);
 	void RemoveStationaryArty(int unit_id);
 
+	AAIConstructor* FindIdleFactory();
+
 	AAIConstructor* FindBuilder(int building, bool commander);
 
 	// finds closest builder and stores its distance to pos in min_dist
