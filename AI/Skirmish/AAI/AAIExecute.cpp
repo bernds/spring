@@ -1061,7 +1061,6 @@ bool AAIExecute::BuildMetalMaker()
 	if(ai->ut->futureUnits[METAL_MAKER] + ai->ut->requestedUnits[METAL_MAKER] > 0 || disabledMMakers >= 1)
 		return true;
 
-	bool checkWater, checkGround;
 	int maker;
 	AAIConstructor *builder;
 	float3 pos;
@@ -1083,21 +1082,8 @@ bool AAIExecute::BuildMetalMaker()
 
 	for(list<AAISector*>::iterator sector = brain->sectors[0].begin(); sector != brain->sectors[0].end(); sector++)
 	{
-		if((*sector)->water_ratio < 0.15)
-		{
-			checkWater = false;
-			checkGround = true;
-		}
-		else if((*sector)->water_ratio < 0.85)
-		{
-			checkWater = true;
-			checkGround = true;
-		}
-		else
-		{
-			checkWater = true;
-			checkGround = false;
-		}
+		bool checkWater = (*sector)->water_ratio >= 0.15;
+		bool checkGround = (*sector)->water_ratio < 0.85;
 
 		if(checkGround)
 		{
@@ -1196,7 +1182,6 @@ bool AAIExecute::BuildStorage()
 		return true;
 
 	int storage = 0;
-	bool checkWater, checkGround;
 	AAIConstructor *builder;
 	float3 pos;
 
@@ -1208,21 +1193,8 @@ bool AAIExecute::BuildStorage()
 
 	for(list<AAISector*>::iterator sector = brain->sectors[0].begin(); sector != brain->sectors[0].end(); sector++)
 	{
-		if((*sector)->water_ratio < 0.15)
-		{
-			checkWater = false;
-			checkGround = true;
-		}
-		else if((*sector)->water_ratio < 0.85)
-		{
-			checkWater = true;
-			checkGround = true;
-		}
-		else
-		{
-			checkWater = true;
-			checkGround = false;
-		}
+		bool checkWater = (*sector)->water_ratio >= 0.15;
+		bool checkGround = (*sector)->water_ratio < 0.85;
 
 		if(checkGround)
 		{
@@ -1314,27 +1286,13 @@ bool AAIExecute::BuildAirBase()
 		return true;
 
 	int airbase = 0;
-	bool checkWater, checkGround;
 	AAIConstructor *builder;
 	float3 pos;
 
 	for(list<AAISector*>::iterator sector = brain->sectors[0].begin(); sector != brain->sectors[0].end(); sector++)
 	{
-		if((*sector)->water_ratio < 0.15)
-		{
-			checkWater = false;
-			checkGround = true;
-		}
-		else if((*sector)->water_ratio < 0.85)
-		{
-			checkWater = true;
-			checkGround = true;
-		}
-		else
-		{
-			checkWater = true;
-			checkGround = false;
-		}
+		bool checkWater = (*sector)->water_ratio >= 0.15;
+		bool checkGround = (*sector)->water_ratio < 0.85;
 
 		if(checkGround)
 		{
@@ -1460,7 +1418,6 @@ BuildOrderStatus AAIExecute::BuildStationaryDefenceVS(UnitCategory category, AAI
 
 	double gr_eff = 0, air_eff = 0, hover_eff = 0, sea_eff = 0, submarine_eff = 0;
 
-	bool checkWater, checkGround;
 	int building;
 	float3 pos;
 	AAIConstructor *builder;
@@ -1470,21 +1427,8 @@ BuildOrderStatus AAIExecute::BuildStationaryDefenceVS(UnitCategory category, AAI
 	if(dest->distance_to_base > 0)
 		terrain = 5.0f;
 
-	if(dest->water_ratio < 0.15f)
-	{
-		checkWater = false;
-		checkGround = true;
-	}
-	else if(dest->water_ratio < 0.85f)
-	{
-		checkWater = true;
-		checkGround = true;
-	}
-	else
-	{
-		checkWater = true;
-		checkGround = false;
-	}
+	bool checkWater = dest->water_ratio >= 0.15;
+	bool checkGround = dest->water_ratio < 0.85;
 
 	double urgency = 0.25f + 10.0f / ((double)dest->my_buildings[STATIONARY_DEF] + dest->GetMyDefencePowerAgainstAssaultCategory(bt->GetIDOfAssaultCategory(category)) + 1.0);
 	double power = 0.5 + (double)dest->my_buildings[STATIONARY_DEF];
