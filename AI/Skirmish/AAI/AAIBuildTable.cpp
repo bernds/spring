@@ -1900,16 +1900,16 @@ int AAIBuildTable::GetRandomUnit(list<int> unit_list)
 	return best_unit;
 }
 
-int AAIBuildTable::GetGroundAssault(int side, float power, float gr_eff, float air_eff, float hover_eff, float sea_eff, float stat_eff, float efficiency, float speed, float range, float cost, int randomness, bool canBuild)
+int AAIBuildTable::GetAssault(int side, UnitCategory category, float power, float gr_eff, float air_eff, float hover_eff, float sea_eff, float submarine_eff, float stat_eff, float efficiency, float speed, float range, float cost, int randomness, bool canBuild)
 {
 	--side;
 
 	float best_ranking = -10000, my_ranking;
 	int best_unit = 0;
 
-	float max_cost = this->max_cost[GROUND_ASSAULT][side];
-	float max_range = max_value[GROUND_ASSAULT][side];
-	float max_speed = this->max_speed[0][side];
+	float max_cost = this->max_cost[category][side];
+	float max_range = max_value[category][side];
+	float max_speed = this->max_speed[GetIDOfAssaultCategory(category)][side];
 
 	float max_power = 0;
 	float max_efficiency  = 0;
@@ -1919,12 +1919,16 @@ int AAIBuildTable::GetGroundAssault(int side, float power, float gr_eff, float a
 	// precache eff
 	int c = 0;
 
-	for(list<int>::iterator i = units_of_category[GROUND_ASSAULT][side].begin(); i != units_of_category[GROUND_ASSAULT][side].end(); ++i)
+	for(list<int>::iterator i = units_of_category[category][side].begin(); i != units_of_category[category][side].end(); ++i)
 	{
 		unit = &units_static[*i];
 
-		combat_eff[c] = gr_eff * unit->efficiency[0] + air_eff * unit->efficiency[1] + hover_eff * unit->efficiency[2]
-						+ sea_eff * unit->efficiency[3] + stat_eff * unit->efficiency[5];
+		combat_eff[c] = (gr_eff * unit->efficiency[0]
+				 + air_eff * unit->efficiency[1]
+				 + hover_eff * unit->efficiency[2]
+				 + sea_eff * unit->efficiency[3]
+				 + submarine_eff * unit->efficiency[4]
+				 + stat_eff * unit->efficiency[5]);
 
 		if(combat_eff[c] > max_power)
 			max_power = combat_eff[c];
@@ -1944,7 +1948,7 @@ int AAIBuildTable::GetGroundAssault(int side, float power, float gr_eff, float a
 		max_efficiency = 1;
 
 	// TODO: improve algorithm
-	for(list<int>::iterator i = units_of_category[GROUND_ASSAULT][side].begin(); i != units_of_category[GROUND_ASSAULT][side].end(); ++i)
+	for(list<int>::iterator i = units_of_category[category][side].begin(); i != units_of_category[category][side].end(); ++i)
 	{
 		unit = &units_static[*i];
 
@@ -1981,334 +1985,6 @@ int AAIBuildTable::GetGroundAssault(int side, float power, float gr_eff, float a
 		}
 
 		++c;
-	}
-
-	return best_unit;
-}
-
-int AAIBuildTable::GetHoverAssault(int side,  float power, float gr_eff, float air_eff, float hover_eff, float sea_eff, float stat_eff, float efficiency, float speed, float range, float cost, int randomness, bool canBuild)
-{
-	UnitTypeStatic *unit;
-
-	--side;
-
-	float best_ranking = -10000, my_ranking;
-	int best_unit = 0;
-
-	int c = 0;
-
-	float max_cost = this->max_cost[HOVER_ASSAULT][side];
-	float max_range = max_value[HOVER_ASSAULT][side];
-	float max_speed = this->max_speed[2][side];
-
-	float max_power = 0;
-	float max_efficiency  = 0;
-
-	// precache eff
-	for(list<int>::iterator i = units_of_category[HOVER_ASSAULT][side].begin(); i != units_of_category[HOVER_ASSAULT][side].end(); ++i)
-	{
-		unit = &units_static[*i];
-
-		combat_eff[c] = gr_eff * unit->efficiency[0] + air_eff * unit->efficiency[1] + hover_eff * unit->efficiency[2]
-						+ sea_eff * unit->efficiency[3] + stat_eff * unit->efficiency[5];
-
-		if(combat_eff[c] > max_power)
-			max_power = combat_eff[c];
-
-		if(combat_eff[c] / unit->cost > max_efficiency)
-			max_efficiency = combat_eff[c] / unit->cost;
-
-		++c;
-	}
-
-	c = 0;
-
-	if(max_power <= 0)
-		max_power = 1;
-
-	if(max_efficiency <= 0)
-		max_efficiency = 0;
-
-	for(list<int>::iterator i = units_of_category[HOVER_ASSAULT][side].begin(); i != units_of_category[HOVER_ASSAULT][side].end(); ++i)
-	{
-		unit = &units_static[*i];
-
-		if(canBuild && units_dynamic[*i].constructorsAvailable > 0)
-		{
-			my_ranking = power * combat_eff[c] / max_power;
-			my_ranking -= cost * unit->cost / max_cost;
-			my_ranking += efficiency * (combat_eff[c] / unit->cost) / max_efficiency;
-			my_ranking += range * unit->range / max_range;
-			my_ranking += speed * unitList[*i-1]->speed / max_speed;
-			my_ranking += 0.1f * ((float)(rand()%randomness));
-		}
-		else if(!canBuild)
-		{
-			my_ranking = power * combat_eff[c] / max_power;
-			my_ranking -= cost * unit->cost / max_cost;
-			my_ranking += efficiency * (combat_eff[c] / unit->cost) / max_efficiency;
-			my_ranking += range * unit->range / max_range;
-			my_ranking += speed * unitList[*i-1]->speed / max_speed;
-			my_ranking += 0.1f * ((float)(rand()%randomness));
-		}
-		else
-			my_ranking = -10000;
-
-		if(my_ranking > best_ranking)
-		{
-			// check max metal cost
-			if(unitList[*i-1]->metalCost < cfg->MAX_METAL_COST)
-			{
-				best_ranking = my_ranking;
-				best_unit = *i;
-			}
-		}
-	}
-
-	return best_unit;
-}
-
-
-int AAIBuildTable::GetAirAssault(int side,  float power, float gr_eff, float air_eff, float hover_eff, float sea_eff, float stat_eff, float efficiency, float speed, float range, float cost, int randomness, bool canBuild)
-{
-	UnitTypeStatic *unit;
-
-	--side;
-
-	float best_ranking = -10000, my_ranking;
-	int best_unit = 0;
-
-	int c = 0;
-
-	float max_cost = this->max_cost[AIR_ASSAULT][side];
-	float max_range = max_value[AIR_ASSAULT][side];
-	float max_speed = this->max_speed[1][side];
-
-	float max_power = 0;
-	float max_efficiency  = 0;
-
-	// precache eff
-	for(list<int>::iterator i = units_of_category[AIR_ASSAULT][side].begin(); i != units_of_category[AIR_ASSAULT][side].end(); ++i)
-	{
-		unit = &units_static[*i];
-
-		combat_eff[c] = gr_eff * unit->efficiency[0] + air_eff * unit->efficiency[1] + hover_eff * unit->efficiency[2]
-						+ sea_eff * unit->efficiency[3] + stat_eff * unit->efficiency[5];
-
-		if(combat_eff[c] > max_power)
-			max_power = combat_eff[c];
-
-		if(combat_eff[c] / unit->cost > max_efficiency)
-			max_efficiency = combat_eff[c] / unit->cost;
-
-		++c;
-	}
-
-	c = 0;
-
-	if(max_power <= 0)
-		max_power = 1;
-
-	if(max_efficiency <= 0)
-		max_efficiency = 0;
-
-	for(list<int>::iterator i = units_of_category[AIR_ASSAULT][side].begin(); i != units_of_category[AIR_ASSAULT][side].end(); ++i)
-	{
-		unit = &units_static[*i];
-
-		if(canBuild && units_dynamic[*i].constructorsAvailable > 0)
-		{
-			my_ranking = power * combat_eff[c] / max_power;
-			my_ranking -= cost * unit->cost / max_cost;
-			my_ranking += efficiency * (combat_eff[c] / unit->cost) / max_efficiency;
-			my_ranking += range * unit->range / max_range;
-			my_ranking += speed * unitList[*i-1]->speed / max_speed;
-			my_ranking += 0.1f * ((float)(rand()%randomness));
-		}
-		else if(!canBuild)
-		{
-			my_ranking = power * combat_eff[c] / max_power;
-			my_ranking -= cost * unit->cost / max_cost;
-			my_ranking += efficiency * (combat_eff[c] / unit->cost) / max_efficiency;
-			my_ranking += range * unit->range / max_range;
-			my_ranking += speed * unitList[*i-1]->speed / max_speed;
-			my_ranking += 0.1f * ((float)(rand()%randomness));
-		}
-		else
-			my_ranking = 0;
-
-		if(my_ranking > best_ranking)
-		{
-			// check max metal cost
-			if(unitList[*i-1]->metalCost < cfg->MAX_METAL_COST)
-			{
-				best_ranking = my_ranking;
-				best_unit = *i;
-			}
-		}
-	}
-
-	return best_unit;
-}
-
-int AAIBuildTable::GetSeaAssault(int side,  float power, float gr_eff, float air_eff, float hover_eff, float sea_eff, float submarine_eff, float stat_eff, float efficiency, float speed, float range, float cost, int randomness, bool canBuild)
-{
-	UnitTypeStatic *unit;
-
-	--side;
-
-	float best_ranking = -10000, my_ranking;
-	int best_unit = 0;
-
-	int c = 0;
-
-	float max_cost = this->max_cost[SEA_ASSAULT][side];
-	float max_range = max_value[SEA_ASSAULT][side];
-	float max_speed = this->max_speed[3][side];
-
-	float max_power = 0;
-	float max_efficiency  = 0;
-
-	// precache eff
-	for(list<int>::iterator i = units_of_category[SEA_ASSAULT][side].begin(); i != units_of_category[SEA_ASSAULT][side].end(); ++i)
-	{
-		unit = &units_static[*i];
-
-		combat_eff[c] = gr_eff * unit->efficiency[0] + air_eff * unit->efficiency[1] + hover_eff * unit->efficiency[2]
-		+ sea_eff * unit->efficiency[3] + submarine_eff * unit->efficiency[4] + stat_eff * unit->efficiency[5];
-
-		if(combat_eff[c] > max_power)
-			max_power = combat_eff[c];
-
-		if(combat_eff[c] / unit->cost > max_efficiency)
-			max_efficiency = combat_eff[c] / unit->cost;
-
-		++c;
-	}
-
-	c = 0;
-
-	if(max_power <= 0)
-		max_power = 1;
-
-	if(max_efficiency <= 0)
-		max_efficiency = 0;
-
-	for(list<int>::iterator i = units_of_category[SEA_ASSAULT][side].begin(); i != units_of_category[SEA_ASSAULT][side].end(); ++i)
-	{
-		unit = &units_static[*i];
-
-		if(canBuild && units_dynamic[*i].constructorsAvailable > 0)
-		{
-			my_ranking = power * combat_eff[c] / max_power;
-			my_ranking -= cost * unit->cost / max_cost;
-			my_ranking += efficiency * (combat_eff[c] / unit->cost) / max_efficiency;
-			my_ranking += range * unit->range / max_range;
-			my_ranking += speed * unitList[*i-1]->speed / max_speed;
-			my_ranking += 0.1f * ((float)(rand()%randomness));
-		}
-		else if(!canBuild)
-		{
-			my_ranking = power * combat_eff[c] / max_power;
-			my_ranking -= cost * unit->cost / max_cost;
-			my_ranking += efficiency * (combat_eff[c] / unit->cost) / max_efficiency;
-			my_ranking += range * unit->range / max_range;
-			my_ranking += speed * unitList[*i-1]->speed / max_speed;
-			my_ranking += 0.1f * ((float)(rand()%randomness));
-		}
-		else
-			my_ranking = -10000;
-
-		if(my_ranking > best_ranking)
-		{
-			// check max metal cost
-			if(unitList[*i-1]->metalCost < cfg->MAX_METAL_COST)
-			{
-				best_ranking = my_ranking;
-				best_unit = *i;
-			}
-		}
-	}
-
-	return best_unit;
-}
-
-int AAIBuildTable::GetSubmarineAssault(int side, float power, float sea_eff, float submarine_eff, float stat_eff, float efficiency, float speed, float range, float cost, int randomness, bool canBuild)
-{
-	UnitTypeStatic *unit;
-
-	--side;
-
-	float best_ranking = -10000, my_ranking;
-	int best_unit = 0;
-
-	int c = 0;
-
-	float max_cost = this->max_cost[SUBMARINE_ASSAULT][side];
-	float max_range = max_value[SUBMARINE_ASSAULT][side];
-	float max_speed = this->max_speed[4][side];
-
-	float max_power = 0;
-	float max_efficiency  = 0;
-
-	// precache eff
-	for(list<int>::iterator i = units_of_category[SUBMARINE_ASSAULT][side].begin(); i != units_of_category[SUBMARINE_ASSAULT][side].end(); ++i)
-	{
-		unit = &units_static[*i];
-
-		combat_eff[c] = sea_eff * unit->efficiency[3] + submarine_eff * unit->efficiency[4] + stat_eff * unit->efficiency[5];
-
-		if(combat_eff[c] > max_power)
-			max_power = combat_eff[c];
-
-		if(combat_eff[c] / unit->cost > max_efficiency)
-			max_efficiency = combat_eff[c] / unit->cost;
-
-		++c;
-	}
-
-	c = 0;
-
-	if(max_power <= 0)
-		max_power = 1;
-
-	if(max_efficiency <= 0)
-		max_efficiency = 0;
-
-	for(list<int>::iterator i = units_of_category[SUBMARINE_ASSAULT][side].begin(); i != units_of_category[SUBMARINE_ASSAULT][side].end(); ++i)
-	{
-		unit = &units_static[*i];
-
-		if(canBuild && units_dynamic[*i].constructorsAvailable > 0)
-		{
-			my_ranking = power * combat_eff[c] / max_power;
-			my_ranking -= cost * unit->cost / max_cost;
-			my_ranking += efficiency * (combat_eff[c] / unit->cost) / max_efficiency;
-			my_ranking += range * unit->range / max_range;
-			my_ranking += speed * unitList[*i-1]->speed / max_speed;
-			my_ranking += 0.1f * ((float)(rand()%randomness));
-		}
-		else if(!canBuild)
-		{
-			my_ranking = power * combat_eff[c] / max_power;
-			my_ranking -= cost * unit->cost / max_cost;
-			my_ranking += efficiency * (combat_eff[c] / unit->cost) / max_efficiency;
-			my_ranking += range * unit->range / max_range;
-			my_ranking += speed * unitList[*i-1]->speed / max_speed;
-			my_ranking += 0.1f * ((float)(rand()%randomness));
-		}
-		else
-			my_ranking = -10000;
-
-		if(my_ranking > best_ranking)
-		{
-			// check max metal cost
-			if(unitList[*i-1]->metalCost < cfg->MAX_METAL_COST)
-			{
-				best_ranking = my_ranking;
-				best_unit = *i;
-			}
-		}
 	}
 
 	return best_unit;

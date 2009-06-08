@@ -1019,12 +1019,12 @@ void AAIBrain::BuildUnitOfMovementType(unsigned int allowed_move_type, float cos
 		if(rand()%cfg->LEARN_RATE == 1)
 			unit = bt->GetRandomUnit(bt->units_of_category[AIR_ASSAULT][ai->side-1]);
 		else
-			unit = bt->GetAirAssault(ai->side, power, ground_eff, air_eff, hover_eff, sea_eff, stat_eff, eff, speed, range, cost, 9, false);
+			unit = bt->GetAssault(ai->side, AIR_ASSAULT, power, ground_eff, air_eff, hover_eff, sea_eff, 0,  stat_eff, eff, speed, range, cost, 9, false);
 
 		if(unit && bt->units_dynamic[unit].constructorsAvailable + bt->units_dynamic[unit].constructorsRequested <= 0)
 		{
 			bt->BuildFactoryFor(unit);
-			unit = bt->GetAirAssault(ai->side, power, ground_eff, air_eff, hover_eff, sea_eff, stat_eff, eff, speed, range, cost, 9, true);
+			unit = bt->GetAssault(ai->side, AIR_ASSAULT, power, ground_eff, air_eff, hover_eff, sea_eff, 0,  stat_eff, eff, speed, range, cost, 9, true);
 		}
 	}
 
@@ -1034,12 +1034,12 @@ void AAIBrain::BuildUnitOfMovementType(unsigned int allowed_move_type, float cos
 		if(rand()%cfg->LEARN_RATE == 1)
 			ground = bt->GetRandomUnit(bt->units_of_category[GROUND_ASSAULT][ai->side-1]);
 		else
-			ground = bt->GetGroundAssault(ai->side, power, ground_eff, air_eff, hover_eff, sea_eff, stat_eff, eff, speed, range, cost, 15, false);
+			ground = bt->GetAssault(ai->side, GROUND_ASSAULT, power, ground_eff, air_eff, hover_eff, sea_eff, 0,  stat_eff, eff, speed, range, cost, 15, false);
 
 		if(ground && bt->units_dynamic[ground].constructorsAvailable + bt->units_dynamic[ground].constructorsRequested <= 0)
 		{
 			bt->BuildFactoryFor(ground);
-			ground = bt->GetGroundAssault(ai->side, power, ground_eff, air_eff, hover_eff, sea_eff, stat_eff, eff, speed, range, cost, 15, true);
+			ground = bt->GetAssault(ai->side, GROUND_ASSAULT, power, ground_eff, air_eff, hover_eff, sea_eff, 0,  stat_eff, eff, speed, range, cost, 15, true);
 		}
 	}
 
@@ -1048,12 +1048,12 @@ void AAIBrain::BuildUnitOfMovementType(unsigned int allowed_move_type, float cos
 		if(rand()%cfg->LEARN_RATE == 1)
 			hover = bt->GetRandomUnit(bt->units_of_category[HOVER_ASSAULT][ai->side-1]);
 		else
-			hover = bt->GetHoverAssault(ai->side, power, ground_eff, air_eff, hover_eff, sea_eff, stat_eff, eff, speed, range, cost, 9, false);
+			hover = bt->GetAssault(ai->side, HOVER_ASSAULT, power, ground_eff, air_eff, hover_eff, sea_eff, 0,  stat_eff, eff, speed, range, cost, 9, false);
 
 		if(hover && bt->units_dynamic[hover].constructorsAvailable + bt->units_dynamic[hover].constructorsRequested <= 0)
 		{
 			bt->BuildFactoryFor(hover);
-			hover = bt->GetHoverAssault(ai->side, power, ground_eff, air_eff, hover_eff, sea_eff, stat_eff, eff, speed, range, cost, 9, true);
+			hover = bt->GetAssault(ai->side, HOVER_ASSAULT, power, ground_eff, air_eff, hover_eff, sea_eff, 0,  stat_eff, eff, speed, range, cost, 9, true);
 		}
 	}
 
@@ -1068,20 +1068,20 @@ void AAIBrain::BuildUnitOfMovementType(unsigned int allowed_move_type, float cos
 		}
 		else
 		{
-			ship = bt->GetSeaAssault(ai->side, power, ground_eff, air_eff, hover_eff, sea_eff, submarine_eff, stat_eff, eff, speed, range, cost, 9, false);
-			submarine = bt->GetSubmarineAssault(ai->side, power, sea_eff, submarine_eff, stat_eff, eff, speed, range, cost, 9, false);
+			ship = bt->GetAssault(ai->side, SEA_ASSAULT, power, ground_eff, air_eff, hover_eff, sea_eff, submarine_eff, stat_eff, eff, speed, range, cost, 9, false);
+			submarine = bt->GetAssault(ai->side, SUBMARINE_ASSAULT, power, 0, 0, 0, sea_eff, submarine_eff, stat_eff, eff, speed, range, cost, 9, false);
 		}
 		if(ship && bt->units_dynamic[ship].constructorsAvailable + bt->units_dynamic[ship].constructorsRequested <= 0)
 		{
 			bt->BuildFactoryFor(ship);
-			ship = bt->GetSeaAssault(ai->side, power, ground_eff, air_eff, hover_eff, sea_eff, submarine_eff, stat_eff, eff, speed, range, cost, 9, false);
+			ship = bt->GetAssault(ai->side, SEA_ASSAULT, power, ground_eff, air_eff, hover_eff, sea_eff, submarine_eff, stat_eff, eff, speed, range, cost, 9, false);
 		}
 
 
 		if(submarine && bt->units_dynamic[submarine].constructorsAvailable + bt->units_dynamic[submarine].constructorsRequested <= 0)
 		{
 			bt->BuildFactoryFor(submarine);
-			submarine = bt->GetSubmarineAssault(ai->side, power, sea_eff, submarine_eff, stat_eff, eff, speed, range, cost, 9, false);
+			submarine = bt->GetAssault(ai->side, SUBMARINE_ASSAULT, power, 0, 0, 0, sea_eff, submarine_eff, stat_eff, eff, speed, range, cost, 9, false);
 		}
 
 		// determine better unit for desired purpose

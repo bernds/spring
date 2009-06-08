@@ -78,17 +78,8 @@ public:
 	// return repair pad
 	int GetAirBase(int side, float cost, bool water, bool canBuild);
 
-	// returns a ground unit according to the following criteria
-	int GetGroundAssault(int side, float power, float gr_eff, float air_eff, float hover_eff, float sea_eff, float stat_eff, float efficiency, float speed, float range, float cost, int randomness, bool canBuild);
-
-	int GetHoverAssault(int side, float power, float gr_eff, float air_eff, float hover_eff, float sea_eff, float stat_eff, float efficiency, float speed, float range, float cost, int randomness, bool canBuild);
-
-	// returns an air unit according to the following criteria
-	int GetAirAssault(int side, float power, float gr_eff, float air_eff, float hover_eff, float sea_eff, float stat_eff, float efficiency, float speed, float range, float cost, int randomness, bool canBuild);
-
-	int GetSeaAssault(int side, float power, float gr_eff, float air_eff, float hover_eff, float sea_eff, float submarine_eff, float stat_eff, float efficiency, float speed, float range, float cost, int randomness, bool canBuild);
-
-	int GetSubmarineAssault(int side, float power, float sea_eff, float submarine_eff, float stat_eff, float efficiency, float speed, float range, float cost, int randomness, bool canBuild);
+	// returns a combat unit according to the following criteria
+	int GetAssault(int side, UnitCategory category, float power, float gr_eff, float air_eff, float hover_eff, float sea_eff, float submarine_eff, float stat_eff, float efficiency, float speed, float range, float cost, int randomness, bool canBuild);
 
 	// returns a random unit from the list
 	int GetRandomUnit(list<int> unit_list);
